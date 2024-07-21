@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namibian Satellite Map Viewer</title>
+    <!-- Include Google Maps API with Places and Geometry libraries -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQAO5Er8_9muYe8ByDKGoRYkml4jeED_Y&libraries=places,geometry"></script>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4; /* Light gray background */
+            color: #333; /* Dark gray text */
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #614126; /* Brown heading color */
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #map-container {
+            height: 500px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background-color: #614126; /* Brown button color */
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            color: #fff; /* White text */
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #5a3521; /* Darker brown on hover */
+        }
+    </style>
+</head>
+
+
+
+<body onload="initMap()">
+    <!-- <h1 class="text-center">Geo Fencing Tracker</h1> -->
+    <img src="Subject.png" alt="Your Logo" style="width: 100px; height: 100px; display: block; margin: 0 auto;">
+    <h1>Geo Fencing Tracker</h1>
+    <br>
+    <div class="container">
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="Source Location" id="source">
+        </div>
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="Destination Location" id="destination">
+        </div>
+        <button class="btn btn-primary" onclick="calcRoute()">Get Current Location</button>
+        <div id="map-container" style="height: 500px; width: 100%;"></div>
+    </div>
+
+    <script>
+        let map, directionsService, directionsRenderer;
+        let sourceAutocomplete, destAutocomplete;
+        let geofenceCircle;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map-container'), {
+                center: { lat: -22.559722, lng: 17.083611 },
+                zoom: 13
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
+            directionsRenderer.setMap(map);
+
+            sourceAutocomplete = new google.maps.places.Autocomplete(document.getElementById('source'));
+            destAutocomplete = new google.maps.places.Autocomplete(document.getElementById('destination'));
+        }
+
+        function calcRoute() {
+            let source = document.getElementById('source').value;
+            let dest = document.getElementById('destination').value;
+
+            let request = {
+                origin: source,
+                destination: dest,
+                travelMode: 'DRIVING'
+            };
+
+            directionsService.route(request, function(result, status) {
+                if (status == 'OK') {
+                    directionsRenderer.setDirections(result);
+                    // Create geofence around the source location
+                    createGeofence(result.routes[0].legs[0].start_location);
+                } else {
+                    console.error('Error fetching directions:', status);
+                }
+            });
+        }
+
+        function createGeofence(location) {
+            // Remove existing geofence if it exists
+            if (geofenceCircle) {
+                geofenceCircle.setMap(null);
+            }
+
+            // Create a circle around the location with a radius of 500 meters
+            geofenceCircle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+                map: map,
+                center: location,
+                radius: 500 // in meters
+            });
+        }
+    </script>
+</body>
+</html>
